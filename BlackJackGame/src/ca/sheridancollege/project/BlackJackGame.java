@@ -6,7 +6,7 @@ package ca.sheridancollege.project;
 
 /**
  *
- * @author atind
+ * @author Group-7
  */
 public class BlackJackGame {
 
