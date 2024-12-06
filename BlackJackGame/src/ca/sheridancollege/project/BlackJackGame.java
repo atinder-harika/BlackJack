@@ -6,6 +6,14 @@ public class BlackJackGame extends Game {
 
     private Player player;      // The player instance
     private GroupOfCards deck;  // The deck of cards used in the game
+    
+    public Player getPlayer() {
+        return player;
+    }
+
+    public GroupOfCards getDeck() {
+        return deck;
+    }
 
     public BlackJackGame(String name) {
         super(name);
@@ -27,6 +35,11 @@ public class BlackJackGame extends Game {
         player.setName(playerName);
         System.out.println("Welcome, " + playerName + "! Let's play Blackjack.");
     }
+    
+    public void registerPlayerForTest(String playerName) {
+        player.setName(playerName);
+    }
+
 
     @Override
     public void play() {
