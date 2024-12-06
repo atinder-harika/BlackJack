@@ -4,90 +4,123 @@ import java.util.Scanner;
 
 public class BlackJackGame extends Game {
 
-    private int playerScore;      // Tracks the total score of the player
-    private int dealerScore;      // Tracks the total score of the dealer
-    private int roundCounter;     // Keeps track of the rounds
-    private Player player;        // The player instance
-    private GroupOfCards deck;    // The deck of cards used in the game
+    private Player player;      // The player instance
+    private GroupOfCards deck;  // The deck of cards used in the game
+    
+    public Player getPlayer() {
+        return player;
+    }
 
-    // Constructor to initialize the game
+    public GroupOfCards getDeck() {
+        return deck;
+    }
+
     public BlackJackGame(String name) {
         super(name);
-        this.roundCounter = 1;
-        this.playerScore = 0;
-        this.dealerScore = 0;
-        this.player = new Player("Player 1"); // Default player
-        this.deck = new GroupOfCards(52);    // Standard 52-card deck
+        this.player = new Player(""); // Player name will be set during registration
+        this.deck = new GroupOfCards(52); // Standard 52-card deck
     }
 
-    // Main method to start the game
     public static void main(String[] args) {
         BlackJackGame game = new BlackJackGame("Blackjack");
-        game.play(); // Start the game
+        game.registerPlayer();
+        game.play();
     }
 
-    // Method to play the game
+    // Player registration with interactive input
+    public void registerPlayer() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter your name to start the game: ");
+        String playerName = scanner.nextLine();
+        player.setName(playerName);
+        System.out.println("Welcome, " + playerName + "! Let's play Blackjack.");
+    }
+    
+    public void registerPlayerForTest(String playerName) {
+        player.setName(playerName);
+    }
+
+
     @Override
     public void play() {
-        // Initialize and shuffle the deck
-        System.out.println("Initializing the deck...");
         deck.shuffle();
+        boolean continuePlaying = true;
 
-        // Run four rounds of Blackjack
-        while (roundCounter <= 4) {
-            System.out.println("\nRound " + roundCounter);
-            playRound(); // Play each round
-            roundCounter++;
+        while (continuePlaying) {
+            System.out.println("\nDealing cards...");
+            Player dealer = new Player("Dealer");
+            playRound(player, dealer);
+
+            System.out.println("\nDo you want to play another round? (yes/no): ");
+            Scanner scanner = new Scanner(System.in);
+            String response = scanner.nextLine().trim().toLowerCase();
+            continuePlaying = response.equals("yes");
         }
 
-        // After 4 rounds, display the total scores and declare the winner
-        declareWinner();
+        System.out.println("Thank you for playing, " + player.getName() + "!");
     }
 
-    // Method to play one round of Blackjack
-    private void playRound() {
-        // Simulating player and dealer turns
-        int roundPlayerScore = simulatePlayerTurn();
-        int roundDealerScore = simulateDealerTurn();
+    private void playRound(Player player, Player dealer) {
+        // Deal initial cards
+        int playerScore = dealInitialCards(player);
+        int dealerScore = dealInitialCards(dealer);
 
-        // Update total scores
-        playerScore += roundPlayerScore;
-        dealerScore += roundDealerScore;
+        // Player's turn
+        while (playerScore < 21 && promptPlayerChoice()) {
+            playerScore += drawCard(player);
+        }
 
-        System.out.println("End of Round " + roundCounter);
-        System.out.println("Player's Total Score: " + playerScore);
-        System.out.println("Dealer's Total Score: " + dealerScore);
+        if (playerScore > 21) {
+            System.out.println("You busted with a score of " + playerScore + ". Dealer wins!");
+            return;
+        }
+
+        // Dealer's turn
+        while (dealerScore < 17) {
+            dealerScore += drawCard(dealer);
+        }
+
+        // Determine winner
+        determineWinner(playerScore, dealerScore);
     }
 
-    // Simulate the player's turn
-    private int simulatePlayerTurn() {
-        System.out.println("Player draws a card...");
-        int cardValue = (int) (Math.random() * 11) + 1; // Random value between 1-11
-        System.out.println("Player drew a card worth " + cardValue + " points.");
+    private int dealInitialCards(Player player) {
+        int score = 0;
+        for (int i = 0; i < 2; i++) {
+            score += drawCard(player);
+        }
+        return score;
+    }
+
+    private int drawCard(Player player) {
+        Card card = deck.getCards().remove(0);
+        int cardValue = ((StandardCard) card).getValue();
+        System.out.println(player.getName() + " drew " + card + " (Value: " + cardValue + ")");
         return cardValue;
     }
 
-    // Simulate the dealer's turn
-    private int simulateDealerTurn() {
-        System.out.println("Dealer draws a card...");
-        int cardValue = (int) (Math.random() * 11) + 1; // Random value between 1-11
-        System.out.println("Dealer drew a card worth " + cardValue + " points.");
-        return cardValue;
+    private boolean promptPlayerChoice() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Do you want to hit or stand? (hit/stand): ");
+        String choice = scanner.nextLine().trim().toLowerCase();
+        return choice.equals("hit");
     }
 
-    // Method to declare the winner after four rounds
-    @Override
-    public void declareWinner() {
-        System.out.println("\nGame Over!");
-        System.out.println("Player Total Score: " + playerScore);
-        System.out.println("Dealer Total Score: " + dealerScore);
+    private void determineWinner(int playerScore, int dealerScore) {
+        System.out.println("\nPlayer Score: " + playerScore);
+        System.out.println("Dealer Score: " + dealerScore);
 
-        if (playerScore > dealerScore) {
-            System.out.println("Player wins!");
+        if (playerScore > dealerScore || dealerScore > 21) {
+            System.out.println("Congratulations! You win!");
         } else if (playerScore < dealerScore) {
             System.out.println("Dealer wins!");
         } else {
             System.out.println("It's a tie!");
         }
+    }
+
+    @Override
+    public void declareWinner() {
+        // No longer used, but kept for abstract method compliance.
     }
 }
